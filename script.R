@@ -1,6 +1,8 @@
 library(tidyverse)
 library(hrbrthemes)
 library(viridis)
+library(ggplot2)
+library(xtable)
 set.seed(2023)
 dados <- read.table("dados.txt", sep = "\t", header = T)
 
@@ -63,5 +65,25 @@ summary(ajuste_cov1_resp)
 ajuste_cov2_resp <- lm(treino[, var_resp$nome_dados]~treino[,covar2$nome_dados])
 summary(ajuste_cov2_resp)
 
-#
+#intervalos de confiança para os parâmetros dos modelos
+confint(ajuste_cov1_resp) #Lembrar de escrever beta_1 no lugar dessa saída horrível
+confint(ajuste_cov2_resp)
 
+#Tabela Anova para os modelos
+summary(aov(ajuste_cov1_resp)) #1a cov
+summary(aov(ajuste_cov2_resp)) #2a cov
+
+#Banda de confiança para os modelos
+ggplot(treino, aes(x=BrainWt, y=LifeSpan)) + 
+  geom_point(color='#2980B9', size = 4) + 
+  geom_smooth(method=lm, color='#2C3E50') #1a covar
+
+ggplot(treino, aes(x=Gestation, y=LifeSpan)) + 
+  geom_point(color='#2980B9', size = 4) + 
+  geom_smooth(method=lm, color='#2C3E50')
+
+#Intervalos de predição
+pred_1 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
+xtable(pred_1) #Saída em Latex caso queira usar
+pred_2 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
+xtable(pred_2) #Saída em Latex caso queira usar
