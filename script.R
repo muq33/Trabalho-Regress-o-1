@@ -76,11 +76,13 @@ summary(aov(ajuste_cov2_resp)) #2a cov
 #Banda de confiança para os modelos
 ggplot(treino, aes(x=BrainWt, y=LifeSpan)) + 
   geom_point(color='#2980B9', size = 4) + 
-  geom_smooth(method=lm, color='#2C3E50') #1a covar
+  geom_smooth(method=lm, color='#2C3E50')+
+  labs(title = "Banda de confiança no conjunto de treino", x = covar1$nome_usavel,y = var_resp$nome_usavel)#1a covar
 
 ggplot(treino, aes(x=Gestation, y=LifeSpan)) + 
   geom_point(color='#2980B9', size = 4) + 
-  geom_smooth(method=lm, color='#2C3E50')
+  geom_smooth(method=lm, color='#2C3E50') +
+  labs(title = "Banda de confiança no conjunto de treino", x = covar2$nome_usavel,y = var_resp$nome_usavel)
 
 #Intervalos de predição
 pred_1 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
