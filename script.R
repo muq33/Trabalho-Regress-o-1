@@ -89,3 +89,39 @@ pred_1 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
 xtable(pred_1) #Saída em Latex caso queira usar
 pred_2 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
 xtable(pred_2) #Saída em Latex caso queira usar
+
+
+#Análise de diagnóstico
+
+#Resíduos x predito
+# Gráfico Resíduos vs. Valores Ajustados
+plot(ajuste_cov1_resp$fitted.values, ajuste_cov1_resp$residuals,
+     xlab = "Valores Ajustados", ylab = "Resíduos",
+     main = "Resíduos vs. Valores Ajustados")
+plot(ajuste_cov2_resp$fitted.values, ajuste_cov1_resp$residuals,
+     xlab = "Valores Ajustados", ylab = "Resíduos",
+     main = "Resíduos vs. Valores Ajustados")
+
+#Histograma dos resíduos
+# Histograma de Resíduos
+hist(ajuste_cov1_resp$residuals, main = "Histograma de Resíduos",
+     xlab = "Resíduos", col = covar1$cor)
+hist(ajuste_cov2_resp$residuals, main = "Histograma de Resíduos",
+     xlab = "Resíduos", col = covar2$cor)
+
+
+#QQ plot
+qqnorm(ajuste_cov1_resp$residuals)
+qqline(ajuste_cov1_resp$residuals)
+
+qqnorm(ajuste_cov2_resp$residuals)
+qqline(ajuste_cov2_resp$residuals)
+
+# Resíduos padronizados
+plot(resid(ajuste_cov1_resp), ylab = "Resíduos Padronizados",
+     xlab = "Quantis Teóricos", main = "Gráfico de Probabilidade Normal")
+plot(resid(ajuste_cov2_resp), ylab = "Resíduos Padronizados",
+     xlab = "Quantis Teóricos", main = "Gráfico de Probabilidade Normal")
+#teste de normalidade dos resíduos
+shapiro.test(ajuste_cov1_resp$residuals) #Não é normal
+shapiro.test(ajuste_cov2_resp$residuals) #Não é normal  
