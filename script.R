@@ -23,6 +23,9 @@ covar2 <- list(
   cor = "#4e9c68"
   )
 
+#Inputando dados
+dados[,covar2$nome_dados][is.na(dados[,covar2$nome_dados])] <- mean(dados[,covar2$nome_dados], na.rm = TRUE)
+dados[,var_resp$nome_dados][is.na(dados[,var_resp$nome_dados])] <- mean(dados[,var_resp$nome_dados], na.rm = TRUE)
 
 
 #Removendo as colunas indesejadas
@@ -98,11 +101,93 @@ xtable(pred_2) #Saída em Latex caso queira usar
 plot(ajuste_cov1_resp$fitted.values, ajuste_cov1_resp$residuals,
      xlab = "Valores Ajustados", ylab = "Resíduos",
      main = "Resíduos vs. Valores Ajustados")
+abline(0, 0, col = "red")
 plot(ajuste_cov2_resp$fitted.values, ajuste_cov1_resp$residuals,
      xlab = "Valores Ajustados", ylab = "Resíduos",
      main = "Resíduos vs. Valores Ajustados")
+abline(0, 0, col = "red")
 
 #Histograma dos resíduos
+hist(ajuste_cov1_resp$residuals, main = "Histograma de Resíduos",
+     xlab = "Resíduos", col = covar1$cor)
+hist(ajuste_cov2_resp$residuals, main = "Histograma de Resíduos",
+     xlab = "Resíduos", col = covar2$cor)
+
+
+#QQ plot
+qqnorm(ajuste_cov1_resp$residuals)
+qqline(ajuste_cov1_resp$residuals)
+
+qqnorm(ajuste_cov2_resp$residuals)
+qqline(ajuste_cov2_resp$residuals)
+
+# Resíduos padronizados
+plot(resid(ajuste_cov1_resp), ylab = "Resíduos Padronizados",
+     xlab = "Quantis Teóricos", main = "Gráfico de Probabilidade Normal")
+abline(0, 0, col = "red")
+plot(resid(ajuste_cov2_resp), ylab = "Resíduos Padronizados",
+     xlab = "Quantis Teóricos", main = "Gráfico de Probabilidade Normal")
+abline(0, 0, col = "red")
+#teste de normalidade dos resíduos
+shapiro.test(ajuste_cov1_resp$residuals) #Não é normal
+shapiro.test(ajuste_cov2_resp$residuals) #Não é normal
+
+
+
+#Encontrando a melhor transformação que leve a normalidade das covariaveis
+norm_covar1 <- bestNormalize::bestNormalize(dados[,covar1$nome_dados])
+norm_covar2 <- bestNormalize::bestNormalize(dados[,covar2$nome_dados])
+
+dados[,covar1$nome_dados] <- norm_covar1$x.t
+dados[,covar2$nome_dados] <- norm_covar2$x.t
+
+#Dividindo conjunto em teste treino novamente
+tamanho_total <- nrow(dados)
+tamanho_treino <- floor(tamanho_total/2)
+
+ind_treino <- sample(tamanho_total, tamanho_treino, replace = F)
+ind_teste <- setdiff(seq_len(tamanho_total), ind_treino)
+
+treino <- dados[ind_treino,]
+teste <- dados[ind_teste,]
+
+#Ajuste dos modelos 2
+ajuste_cov1_resp <- lm(treino[, var_resp$nome_dados]~treino[,covar1$nome_dados])
+summary(ajuste_cov1_resp)
+ajuste_cov2_resp <- lm(treino[, var_resp$nome_dados]~treino[,covar2$nome_dados])
+summary(ajuste_cov2_resp)
+
+#Banda de confiança para os modelos
+ggplot(treino, aes(x=BrainWt, y=LifeSpan)) + 
+  geom_point(color='#2980B9', size = 4) + 
+  geom_smooth(method=lm, color='#2C3E50')+
+  labs(title = "Banda de confiança no conjunto de treino", x = covar1$nome_usavel,y = var_resp$nome_usavel)#1a covar
+
+ggplot(treino, aes(x=Gestation, y=LifeSpan)) + 
+  geom_point(color='#2980B9', size = 4) + 
+  geom_smooth(method=lm, color='#2C3E50') +
+  labs(title = "Banda de confiança no conjunto de treino", x = covar2$nome_usavel,y = var_resp$nome_usavel)
+
+#Intervalos de predição
+pred_1 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
+xtable(pred_1) #Saída em Latex caso queira usar
+pred_2 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
+xtable(pred_2) #Saída em Latex caso queira usar
+
+
+#Análise de diagnóstico 2
+
+#Resíduos x predito
+# Gráfico Resíduos vs. Valores Ajustados
+plot(ajuste_cov1_resp$fitted.values, ajuste_cov1_resp$residuals,
+     xlab = "Valores Ajustados", ylab = "Resíduos",
+     main = "Resíduos vs. Valores Ajustados")
+abline(0, 0, col = "red")
+plot(ajuste_cov2_resp$fitted.values, ajuste_cov1_resp$residuals,
+     xlab = "Valores Ajustados", ylab = "Resíduos",
+     main = "Resíduos vs. Valores Ajustados")
+abline(0, 0, col = "red")
+
 # Histograma de Resíduos
 hist(ajuste_cov1_resp$residuals, main = "Histograma de Resíduos",
      xlab = "Resíduos", col = covar1$cor)
@@ -120,8 +205,13 @@ qqline(ajuste_cov2_resp$residuals)
 # Resíduos padronizados
 plot(resid(ajuste_cov1_resp), ylab = "Resíduos Padronizados",
      xlab = "Quantis Teóricos", main = "Gráfico de Probabilidade Normal")
+abline(0, 0, col = "red")
 plot(resid(ajuste_cov2_resp), ylab = "Resíduos Padronizados",
      xlab = "Quantis Teóricos", main = "Gráfico de Probabilidade Normal")
+abline(0, 0, col = "red")
+
 #teste de normalidade dos resíduos
 shapiro.test(ajuste_cov1_resp$residuals) #Não é normal
-shapiro.test(ajuste_cov2_resp$residuals) #Não é normal  
+shapiro.test(ajuste_cov2_resp$residuals) #Não é normal
+
+
