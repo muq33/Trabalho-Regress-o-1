@@ -101,6 +101,11 @@ qqline(ajuste_cov1_resp$residuals)
 qqnorm(ajuste_cov2_resp$residuals)
 qqline(ajuste_cov2_resp$residuals)
 
+#Teste de Breusch Pagan
+bptest(ajuste_cov1_resp$residuals)
+
+bptest(ajuste_cov2_resp$residuals)
+
 #teste de normalidade dos resíduos
 shapiro.test(ajuste_cov1_resp$residuals) 
 lillie.test(ajuste_cov1_resp$residuals)
