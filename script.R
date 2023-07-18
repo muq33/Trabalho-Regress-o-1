@@ -3,6 +3,8 @@ library(hrbrthemes)
 library(viridis)
 library(ggplot2)
 library(xtable)
+library(nortest)
+library(lmtest)
 set.seed(2023)
 dados <- read.table("dados.txt", sep = "\t", header = T)
 
@@ -72,28 +74,6 @@ summary(ajuste_cov2_resp)
 confint(ajuste_cov1_resp) #Lembrar de escrever beta_1 no lugar dessa saída horrível
 confint(ajuste_cov2_resp)
 
-#Tabela Anova para os modelos
-summary(aov(ajuste_cov1_resp)) #1a cov
-summary(aov(ajuste_cov2_resp)) #2a cov
-
-#Banda de confiança para os modelos
-ggplot(treino, aes(x=BrainWt, y=LifeSpan)) + 
-  geom_point(color='#2980B9', size = 4) + 
-  geom_smooth(method=lm, color='#2C3E50')+
-  labs(title = "Banda de confiança no conjunto de treino", x = covar1$nome_usavel,y = var_resp$nome_usavel)#1a covar
-
-ggplot(treino, aes(x=Gestation, y=LifeSpan)) + 
-  geom_point(color='#2980B9', size = 4) + 
-  geom_smooth(method=lm, color='#2C3E50') +
-  labs(title = "Banda de confiança no conjunto de treino", x = covar2$nome_usavel,y = var_resp$nome_usavel)
-
-#Intervalos de predição
-pred_1 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
-xtable(pred_1) #Saída em Latex caso queira usar
-pred_2 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
-xtable(pred_2) #Saída em Latex caso queira usar
-
-
 #Análise de diagnóstico
 
 #Resíduos x predito
@@ -121,16 +101,14 @@ qqline(ajuste_cov1_resp$residuals)
 qqnorm(ajuste_cov2_resp$residuals)
 qqline(ajuste_cov2_resp$residuals)
 
-# Resíduos padronizados
-plot(resid(ajuste_cov1_resp), ylab = "Resíduos Padronizados",
-     xlab = "Quantis Teóricos", main = "Gráfico de Probabilidade Normal")
-abline(0, 0, col = "red")
-plot(resid(ajuste_cov2_resp), ylab = "Resíduos Padronizados",
-     xlab = "Quantis Teóricos", main = "Gráfico de Probabilidade Normal")
-abline(0, 0, col = "red")
 #teste de normalidade dos resíduos
-shapiro.test(ajuste_cov1_resp$residuals) #Não é normal
-shapiro.test(ajuste_cov2_resp$residuals) #Não é normal
+shapiro.test(ajuste_cov1_resp$residuals) 
+lillie.test(ajuste_cov1_resp$residuals)
+ad.test(ajuste_cov1_resp$residuals)
+
+shapiro.test(ajuste_cov2_resp$residuals) 
+lillie.test(ajuste_cov2_resp$residuals)
+ad.test(ajuste_cov2_resp$residuals)
 
 
 
@@ -157,23 +135,19 @@ summary(ajuste_cov1_resp)
 ajuste_cov2_resp <- lm(treino[, var_resp$nome_dados]~treino[,covar2$nome_dados])
 summary(ajuste_cov2_resp)
 
-#Banda de confiança para os modelos
-ggplot(treino, aes(x=BrainWt, y=LifeSpan)) + 
-  geom_point(color='#2980B9', size = 4) + 
-  geom_smooth(method=lm, color='#2C3E50')+
-  labs(title = "Banda de confiança no conjunto de treino", x = covar1$nome_usavel,y = var_resp$nome_usavel)#1a covar
-
-ggplot(treino, aes(x=Gestation, y=LifeSpan)) + 
-  geom_point(color='#2980B9', size = 4) + 
-  geom_smooth(method=lm, color='#2C3E50') +
-  labs(title = "Banda de confiança no conjunto de treino", x = covar2$nome_usavel,y = var_resp$nome_usavel)
-
-#Intervalos de predição
-pred_1 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
-xtable(pred_1) #Saída em Latex caso queira usar
-pred_2 <- predict(ajuste_cov1_resp, newdata = teste, interval = "predict")
-xtable(pred_2) #Saída em Latex caso queira usar
-
+#Gráfico da reta estimada
+ggplot(treino, aes(x = BrainWt, y = LifeSpan)) +
+  geom_point() +                     # Pontos de dispersão
+  geom_abline(intercept = ajuste_cov1_resp$coefficients[1], slope = ajuste_cov1_resp$coefficients[2], color = "red") +  # Reta estimada
+  labs(title = "Reta estimada na amostra de treino",
+       x = covar1$nome_usavel,
+       y = covar2$nome_usavel)
+ggplot(treino, aes(x = Gestation, y = LifeSpan)) +
+  geom_point() +                     # Pontos de dispersão
+  geom_abline(intercept = ajuste_cov2_resp$coefficients[1], slope = ajuste_cov2_resp$coefficients[2], color = "red") +  # Reta estimada
+  labs(title = "Reta estimada na amostra de treino",
+       x = covar1$nome_usavel,
+       y = covar2$nome_usavel)
 
 #Análise de diagnóstico 2
 
@@ -188,13 +162,6 @@ plot(ajuste_cov2_resp$fitted.values, ajuste_cov1_resp$residuals,
      main = "Resíduos vs. Valores Ajustados")
 abline(0, 0, col = "red")
 
-# Histograma de Resíduos
-hist(ajuste_cov1_resp$residuals, main = "Histograma de Resíduos",
-     xlab = "Resíduos", col = covar1$cor)
-hist(ajuste_cov2_resp$residuals, main = "Histograma de Resíduos",
-     xlab = "Resíduos", col = covar2$cor)
-
-
 #QQ plot
 qqnorm(ajuste_cov1_resp$residuals)
 qqline(ajuste_cov1_resp$residuals)
@@ -202,16 +169,18 @@ qqline(ajuste_cov1_resp$residuals)
 qqnorm(ajuste_cov2_resp$residuals)
 qqline(ajuste_cov2_resp$residuals)
 
-# Resíduos padronizados
-plot(resid(ajuste_cov1_resp), ylab = "Resíduos Padronizados",
-     xlab = "Quantis Teóricos", main = "Gráfico de Probabilidade Normal")
-abline(0, 0, col = "red")
-plot(resid(ajuste_cov2_resp), ylab = "Resíduos Padronizados",
-     xlab = "Quantis Teóricos", main = "Gráfico de Probabilidade Normal")
-abline(0, 0, col = "red")
-
 #teste de normalidade dos resíduos
-shapiro.test(ajuste_cov1_resp$residuals) #Não é normal
+shapiro.test(ajuste_cov1_resp$residuals) 
+lillie.test(ajuste_cov1_resp$residuals)
+ad.test(ajuste_cov1_resp$residuals) #Não é normal
+
+
 shapiro.test(ajuste_cov2_resp$residuals) #Não é normal
+lillie.test(ajuste_cov2_resp$residuals)
+ad.test(ajuste_cov2_resp$residuals)
 
 
+#ANOVA
+summary(aov(ajuste_cov1_resp))
+
+summary(aov(ajuste_cov2_resp))
