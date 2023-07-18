@@ -102,9 +102,9 @@ qqnorm(ajuste_cov2_resp$residuals)
 qqline(ajuste_cov2_resp$residuals)
 
 #Teste de Breusch Pagan
-bptest(ajuste_cov1_resp$residuals)
+bptest(formula = ajuste_cov1_resp)
 
-bptest(ajuste_cov2_resp$residuals)
+bptest(formula = ajuste_cov2_resp)
 
 #teste de normalidade dos resíduos
 shapiro.test(ajuste_cov1_resp$residuals) 
@@ -140,19 +140,19 @@ summary(ajuste_cov1_resp)
 ajuste_cov2_resp <- lm(treino[, var_resp$nome_dados]~treino[,covar2$nome_dados])
 summary(ajuste_cov2_resp)
 
-#Gráfico da reta estimada
+#Gráfico da reta estimada no treino
 ggplot(treino, aes(x = BrainWt, y = LifeSpan)) +
   geom_point() +                     # Pontos de dispersão
   geom_abline(intercept = ajuste_cov1_resp$coefficients[1], slope = ajuste_cov1_resp$coefficients[2], color = "red") +  # Reta estimada
   labs(title = "Reta estimada na amostra de treino",
        x = covar1$nome_usavel,
-       y = covar2$nome_usavel)
+       y = var_resp$nome_usavel)
 ggplot(treino, aes(x = Gestation, y = LifeSpan)) +
   geom_point() +                     # Pontos de dispersão
   geom_abline(intercept = ajuste_cov2_resp$coefficients[1], slope = ajuste_cov2_resp$coefficients[2], color = "red") +  # Reta estimada
   labs(title = "Reta estimada na amostra de treino",
-       x = covar1$nome_usavel,
-       y = covar2$nome_usavel)
+       x = covar2$nome_usavel,
+       y = var_resp$nome_usavel)
 
 #Análise de diagnóstico 2
 
@@ -189,3 +189,20 @@ ad.test(ajuste_cov2_resp$residuals)
 summary(aov(ajuste_cov1_resp))
 
 summary(aov(ajuste_cov2_resp))
+
+#Validação do modelo
+#Gráfico da reta estimada
+ggplot(teste, aes(x = BrainWt, y = LifeSpan)) +
+  geom_point() +                     # Pontos de dispersão
+  geom_abline(intercept = ajuste_cov1_resp$coefficients[1], slope = ajuste_cov1_resp$coefficients[2], color = "red") +  # Reta estimada
+  labs(title = "Reta estimada na amostra de teste",
+       x = covar1$nome_usavel,
+       y = var_resp$nome_usavel)
+ggplot(teste, aes(x = Gestation, y = LifeSpan)) +
+  geom_point() +                     # Pontos de dispersão
+  geom_abline(intercept = ajuste_cov2_resp$coefficients[1], slope = ajuste_cov2_resp$coefficients[2], color = "red") +  # Reta estimada
+  labs(title = "Reta estimada na amostra de teste",
+       x = covar2$nome_usavel,
+       y = var_resp$nome_usavel)
+
+
