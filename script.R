@@ -87,13 +87,6 @@ plot(ajuste_cov2_resp$fitted.values, ajuste_cov1_resp$residuals,
      main = "Resíduos vs. Valores Ajustados")
 abline(0, 0, col = "red")
 
-#Histograma dos resíduos
-hist(ajuste_cov1_resp$residuals, main = "Histograma de Resíduos",
-     xlab = "Resíduos", col = covar1$cor)
-hist(ajuste_cov2_resp$residuals, main = "Histograma de Resíduos",
-     xlab = "Resíduos", col = covar2$cor)
-
-
 #QQ plot
 qqnorm(ajuste_cov1_resp$residuals)
 qqline(ajuste_cov1_resp$residuals)
